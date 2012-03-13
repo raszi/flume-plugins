@@ -1,0 +1,7 @@
+<ivy-module version="2.0">
+	<info organisation="org.apache" module="hello-ivy"/>
+	<dependencies>
+		<dependency org="com.cloudera" name="flume-core" rev="0.9.4-cdh3u3"/>
+		<dependency org="com.cloudera" name="flume-config-web" rev="0.9.4-cdh3u3"/>
+	</dependencies>
+</ivy-module>

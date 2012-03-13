@@ -1,0 +1,47 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="flume-sources" default="resolve">
+    <property file="build.properties"/>
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <target name="clean" description="--> cleans the directories">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${dist.dir}" includes="**/*"/>
+            <fileset dir="${build.dir}" includes="**/*"/>
+        </delete>
+    </target>
+
+	<target name="resolve" description="--> retrieve dependencies with ivy">
+		<ivy:retrieve pattern="${lib.dir}/[organization]/[artifact].[ext]"/>
+	</target>
+
+    <target name="compile" description="--> compiles all source files into build">
+
+        <mkdir dir="${build.dir}"/>
+
+        <filter token="build.date" value="${BUILD_DATE}"/>
+        <filter token="build.version" value="${build.version}"/>
+
+        <copy todir="${build.dir}/sources/" filtering="true">
+            <fileset dir="${src.dir}" defaultexcludes="true"/>
+        </copy>
+
+        <javac destdir="${build.dir}" srcdir="${build.dir}/sources/" source="1.6" target="1.6" debug="true" optimize="true" encoding="UTF-8" includeantruntime="false">
+            <compilerarg value="-Xlint:unchecked"/>
+            <classpath>
+                <path refid="classpath"/>
+            </classpath>
+        </javac>
+
+    </target>
+
+	<target name="dist" depends="compile" description="--> creates a jar with path '${dist.dir}/${dist.name}.jar'.">
+		<mkdir dir="${dist.dir}"/>
+
+		<jar destfile="${dist.dir}/${dist.name}.jar">
+			<fileset dir="${build.dir}"/>
+		</jar>
+	</target>
+
+</project>
