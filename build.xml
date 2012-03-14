@@ -1,4 +1,4 @@
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="flume-sources" default="resolve">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="flume-sources" default="dist">
     <property file="build.properties"/>
 
     <path id="classpath">
@@ -16,18 +16,25 @@
 		<ivy:retrieve pattern="${lib.dir}/[organization]/[artifact].[ext]"/>
 	</target>
 
-    <target name="compile" description="--> compiles all source files into build">
+    <target name="compile-test" description="--> compiles tests">
 
-        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.dir}/test"/>
 
-        <filter token="build.date" value="${BUILD_DATE}"/>
-        <filter token="build.version" value="${build.version}"/>
+        <javac destdir="${build.dir}/test" srcdir="${test.dir}" source="1.6" target="1.6" debug="true" optimize="true" encoding="UTF-8" includeantruntime="false">
+            <compilerarg value="-Xlint:unchecked"/>
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${build.dir}/main"/>
+            </classpath>
+        </javac>
 
-        <copy todir="${build.dir}/sources/" filtering="true">
-            <fileset dir="${src.dir}" defaultexcludes="true"/>
-        </copy>
+    </target>
 
-        <javac destdir="${build.dir}" srcdir="${build.dir}/sources/" source="1.6" target="1.6" debug="true" optimize="true" encoding="UTF-8" includeantruntime="false">
+    <target name="compile" description="--> compiles sources">
+
+        <mkdir dir="${build.dir}/main"/>
+
+        <javac destdir="${build.dir}/main" srcdir="${src.dir}" source="1.6" target="1.6" debug="true" optimize="true" encoding="UTF-8" includeantruntime="false">
             <compilerarg value="-Xlint:unchecked"/>
             <classpath>
                 <path refid="classpath"/>
@@ -36,11 +43,25 @@
 
     </target>
 
-	<target name="dist" depends="compile" description="--> creates a jar with path '${dist.dir}/${dist.name}.jar'.">
+    <target name="test" depends="compile,compile-test" description="--> runs the tests">
+        <taskdef name="testng" classname="com.beust.testng.TestNGAntTask" classpath="${lib.dir}/org.testng/testng.jar"/>
+
+        <testng haltOnfailure="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${build.dir}/test"/>
+                <pathelement location="${build.dir}/main"/>
+			</classpath>
+
+            <xmlfileset dir="." includes="testng.xml"/>
+		</testng>
+	</target>
+
+	<target name="dist" depends="test" description="--> creates a jar with path '${dist.dir}/${dist.name}.jar'.">
 		<mkdir dir="${dist.dir}"/>
 
 		<jar destfile="${dist.dir}/${dist.name}.jar">
-			<fileset dir="${build.dir}"/>
+			<fileset dir="${build.dir}/main"/>
 		</jar>
 	</target>
 
